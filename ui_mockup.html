@@ -1,0 +1,1166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FLIR R-JPG 预处理工作台 - UI 原型</title>
+  <style>
+    :root {
+      --bg: #eef2f5;
+      --surface: #ffffff;
+      --surface-2: #f7f9fb;
+      --line: #d9e1e8;
+      --line-strong: #c3ced8;
+      --text: #18212b;
+      --muted: #637181;
+      --blue: #2563eb;
+      --blue-2: #1d4ed8;
+      --teal: #0f766e;
+      --green: #15803d;
+      --amber: #b45309;
+      --red: #b91c1c;
+      --purple: #7c3aed;
+      --shadow: 0 10px 30px rgba(22, 34, 45, 0.08);
+      --radius: 8px;
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--line-strong);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 6px;
+      height: 34px;
+      padding: 0 12px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: #9fb0bf;
+      background: #f8fafc;
+    }
+
+    button.primary {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: white;
+    }
+
+    button.primary:hover {
+      background: var(--blue-2);
+      border-color: var(--blue-2);
+    }
+
+    button.ghost {
+      background: transparent;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 12px 18px;
+      box-shadow: 0 1px 0 rgba(20, 33, 45, 0.03);
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 260px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 7px;
+      background: conic-gradient(from 210deg, #111827, #7f1d1d, #d97706, #facc15, #0f766e, #111827);
+      border: 1px solid #111827;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 1px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .paths {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) minmax(280px, 1fr) auto auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .path-field {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 6px 8px;
+    }
+
+    .path-field label {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .path-field code {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      color: #263241;
+      font-size: 12px;
+    }
+
+    .workflow {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(92px, 1fr));
+      gap: 6px;
+    }
+
+    .step {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      color: var(--muted);
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .step b {
+      display: inline-flex;
+      width: 19px;
+      height: 19px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #dfe8f0;
+      color: #475569;
+      font-size: 11px;
+    }
+
+    .step.active {
+      background: #eff6ff;
+      border-color: #9ec5ff;
+      color: #174ea6;
+    }
+
+    .step.active b {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .main {
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: 310px minmax(420px, 1fr) 390px;
+      gap: 14px;
+      min-height: 0;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 12px 13px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 50px;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
+    .panel-header .hint {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .panel-body {
+      padding: 12px;
+      overflow: auto;
+      min-height: 0;
+    }
+
+    .batch-summary {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .metric {
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 8px;
+      min-width: 0;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .status-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: 7px;
+      border: 1px solid #b7e1c2;
+      background: #f0fdf4;
+      color: #14532d;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      flex: 0 0 auto;
+    }
+
+    .dot.warn {
+      background: var(--amber);
+    }
+
+    .dot.error {
+      background: var(--red);
+    }
+
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .file-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px 8px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 9px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .file-item:hover {
+      border-color: #aebdcc;
+    }
+
+    .file-item.selected {
+      border-color: var(--blue);
+      box-shadow: inset 3px 0 0 var(--blue);
+      background: #f8fbff;
+    }
+
+    .file-name {
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+      font-weight: 700;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      font-size: 11px;
+      white-space: nowrap;
+      background: #fff;
+      color: #334155;
+    }
+
+    .badge.ok {
+      border-color: #86efac;
+      color: #166534;
+      background: #f0fdf4;
+    }
+
+    .badge.warn {
+      border-color: #fcd34d;
+      color: #92400e;
+      background: #fffbeb;
+    }
+
+    .badge.info {
+      border-color: #bfdbfe;
+      color: #1d4ed8;
+      background: #eff6ff;
+    }
+
+    .file-meta {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--line);
+      padding: 0 12px;
+      background: #fbfcfe;
+    }
+
+    .tab {
+      border: 0;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+      background: transparent;
+      height: 42px;
+      color: var(--muted);
+      padding: 0 10px;
+    }
+
+    .tab.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+      font-weight: 700;
+    }
+
+    .preview-wrap {
+      display: grid;
+      grid-template-rows: minmax(280px, 1fr) auto;
+      gap: 12px;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .image-stage {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+        #111827;
+      background-size: 28px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 280px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .thermal-image {
+      width: min(92%, 650px);
+      aspect-ratio: 1.25 / 1;
+      border: 1px solid rgba(255,255,255,0.35);
+      background:
+        radial-gradient(circle at 18% 22%, #fff7ad 0 4%, #f59e0b 9%, transparent 18%),
+        radial-gradient(circle at 70% 38%, #fef3c7 0 3%, #ef4444 10%, transparent 20%),
+        radial-gradient(circle at 48% 70%, #fde68a 0 3%, #dc2626 9%, transparent 18%),
+        linear-gradient(135deg, #111827 0%, #0e7490 24%, #22c55e 42%, #f59e0b 64%, #991b1b 100%);
+      image-rendering: pixelated;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+    }
+
+    .rgb-image {
+      width: min(92%, 650px);
+      aspect-ratio: 1.25 / 1;
+      border: 1px solid rgba(255,255,255,0.3);
+      background:
+        linear-gradient(29deg, transparent 0 33%, rgba(40, 48, 56, 0.72) 34% 38%, transparent 39%),
+        linear-gradient(118deg, transparent 0 28%, rgba(35, 43, 52, 0.8) 29% 33%, transparent 34%),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.25) 0 8%, transparent 8% 18%, rgba(148, 163, 184, 0.2) 18% 26%, transparent 26%),
+        linear-gradient(180deg, #cbd5e1, #94a3b8 42%, #64748b);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+    }
+
+    .crosshair {
+      position: absolute;
+      left: 54%;
+      top: 43%;
+      width: 26px;
+      height: 26px;
+      border: 1px solid #fff;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.55);
+    }
+
+    .crosshair::before,
+    .crosshair::after {
+      content: "";
+      position: absolute;
+      background: #fff;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+    }
+
+    .crosshair::before {
+      width: 1px;
+      height: 34px;
+      left: 12px;
+      top: -5px;
+    }
+
+    .crosshair::after {
+      width: 34px;
+      height: 1px;
+      left: -5px;
+      top: 12px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      border-radius: 7px;
+      padding: 8px;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .stat strong {
+      font-size: 15px;
+    }
+
+    .validation {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      align-items: end;
+      margin-top: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      height: 32px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      padding: 0 8px;
+      background: #fff;
+      min-width: 0;
+    }
+
+    .field input[readonly] {
+      color: #64748b;
+      background: #f1f5f9;
+    }
+
+    .param-scroll {
+      overflow: auto;
+      padding: 12px;
+    }
+
+    .section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+
+    .section-title {
+      height: 34px;
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--line);
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .section-title span {
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    .form-grid {
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 8px;
+    }
+
+    .form-grid .wide {
+      grid-column: 1 / -1;
+    }
+
+    .locked {
+      display: inline-flex;
+      align-items: center;
+      height: 20px;
+      padding: 0 7px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-size: 11px;
+    }
+
+    .right-actions {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid var(--line);
+      background: #fbfcfe;
+    }
+
+    .footer {
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: minmax(420px, 1.1fr) minmax(360px, 0.9fr);
+      gap: 0;
+      min-height: 184px;
+      max-height: 238px;
+    }
+
+    .output-panel,
+    .log-panel {
+      padding: 12px 18px;
+      overflow: auto;
+    }
+
+    .output-panel {
+      border-right: 1px solid var(--line);
+    }
+
+    .footer h3 {
+      margin: 0 0 9px;
+      font-size: 13px;
+    }
+
+    .output-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(170px, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .check-tile {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fbfcfe;
+      padding: 8px;
+      min-height: 48px;
+    }
+
+    .check-tile input {
+      width: 16px;
+      height: 16px;
+    }
+
+    .check-tile strong {
+      display: block;
+      font-size: 12px;
+    }
+
+    .check-tile span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .progress-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .progress {
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      background: #e5eaf0;
+      overflow: hidden;
+    }
+
+    .progress > div {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--teal));
+      transition: width 350ms ease;
+    }
+
+    .log-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 12px;
+      color: #263241;
+    }
+
+    .log-list li {
+      padding: 4px 0;
+      border-bottom: 1px solid #edf1f5;
+      overflow-wrap: anywhere;
+    }
+
+    .log-list .ok {
+      color: var(--green);
+    }
+
+    .log-list .warn {
+      color: var(--amber);
+    }
+
+    .log-list .info {
+      color: var(--blue);
+    }
+
+    @media (max-width: 1260px) {
+      .main {
+        grid-template-columns: 280px minmax(380px, 1fr);
+      }
+
+      .right-panel {
+        grid-column: 1 / -1;
+        min-height: 380px;
+      }
+
+      .paths {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .main,
+      .footer,
+      .paths,
+      .workflow {
+        grid-template-columns: 1fr;
+      }
+
+      .output-panel {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .output-grid,
+      .stats,
+      .validation {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="title-row">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div>
+            <h1>FLIR Duo Pro R R-JPG 预处理工作台</h1>
+            <p>Radiometric TIFF / Float32 Celsius / 元数据批处理</p>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="ghost" id="reportBtn">导出检查报告</button>
+          <button id="checkBtn">检查文件</button>
+          <button class="primary" id="processBtn">开始处理</button>
+        </div>
+      </div>
+      <div class="paths">
+        <div class="path-field">
+          <label>输入</label>
+          <code>E:\Desktop\热红外相机</code>
+          <button>选择</button>
+        </div>
+        <div class="path-field">
+          <label>输出</label>
+          <code>E:\Desktop\热红外相机\processed</code>
+          <button>选择</button>
+        </div>
+        <button>载入预设</button>
+        <button>保存预设</button>
+      </div>
+      <div class="workflow">
+        <div class="step active"><b>1</b>导入文件夹</div>
+        <div class="step active"><b>2</b>检查 R-JPG</div>
+        <div class="step active"><b>3</b>编辑参数</div>
+        <div class="step"><b>4</b>选择输出</div>
+        <div class="step"><b>5</b>批量处理</div>
+        <div class="step"><b>6</b>检查结果</div>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="panel">
+        <div class="panel-header">
+          <h2>文件与批次检查</h2>
+          <span class="hint">2 / 2 通过</span>
+        </div>
+        <div class="panel-body">
+          <div class="batch-summary">
+            <div class="metric"><span>相机</span><strong>FLIR Duo Pro R</strong></div>
+            <div class="metric"><span>热图尺寸</span><strong>640 x 512</strong></div>
+            <div class="metric"><span>焦距</span><strong>25.0 mm</strong></div>
+            <div class="metric"><span>Planck 参数</span><strong>一致</strong></div>
+          </div>
+          <div class="status-line">
+            <span class="dot"></span>
+            批次检查通过，GPS 与 FLIR 辐射参数完整。
+          </div>
+          <div class="file-list" id="fileList"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>图像预览与温度验证</h2>
+          <span class="hint" id="activeFileHint">20221116_142438_290_R.JPG</span>
+        </div>
+        <div class="tabs">
+          <button class="tab active" data-tab="thermal">热红外预览</button>
+          <button class="tab" data-tab="rgb">RGB 预览</button>
+          <button class="tab" data-tab="verify">像素温度验证</button>
+        </div>
+        <div class="panel-body">
+          <div class="preview-wrap">
+            <div class="image-stage" id="imageStage">
+              <div class="thermal-image" id="mockImage"></div>
+              <div class="crosshair" title="验证像素坐标"></div>
+            </div>
+            <div>
+              <div class="stats">
+                <div class="stat"><span>最小温度</span><strong id="minTemp">18.42 °C</strong></div>
+                <div class="stat"><span>最大温度</span><strong id="maxTemp">42.86 °C</strong></div>
+                <div class="stat"><span>均值</span><strong id="avgTemp">29.17 °C</strong></div>
+                <div class="stat"><span>当前像素</span><strong id="pixelTemp">31.64 °C</strong></div>
+              </div>
+              <div class="validation">
+                <div class="field">
+                  <label>像素 X</label>
+                  <input id="pixelX" value="346">
+                </div>
+                <div class="field">
+                  <label>像素 Y</label>
+                  <input id="pixelY" value="221">
+                </div>
+                <div class="field">
+                  <label>FLIR 官方读数</label>
+                  <input id="officialTemp" value="31.7">
+                </div>
+                <div class="field">
+                  <label>误差</label>
+                  <input id="tempDelta" value="-0.06 °C" readonly>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel right-panel">
+        <div class="panel-header">
+          <h2>EXIF 与辐射参数</h2>
+          <span class="badge info">白名单编辑</span>
+        </div>
+        <div class="param-scroll">
+          <div class="section">
+            <div class="section-title">相机信息 <span>写入派生文件</span></div>
+            <div class="form-grid">
+              <div class="field">
+                <label>Make</label>
+                <input value="FLIR">
+              </div>
+              <div class="field">
+                <label>Model</label>
+                <input value="Duo Pro R">
+              </div>
+              <div class="field">
+                <label>FocalLength</label>
+                <input value="25.0">
+              </div>
+              <div class="field">
+                <label>Software</label>
+                <input value="V01.02.05" readonly>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">GPS 与时间 <span>CSV / TIFF EXIF</span></div>
+            <div class="form-grid">
+              <div class="field">
+                <label>Latitude</label>
+                <input id="latInput" value="34.151443">
+              </div>
+              <div class="field">
+                <label>Longitude</label>
+                <input id="lonInput" value="108.928383">
+              </div>
+              <div class="field">
+                <label>Altitude</label>
+                <input value="622.09">
+              </div>
+              <div class="field">
+                <label>Direction</label>
+                <input value="305.63">
+              </div>
+              <div class="field wide">
+                <label>DateTimeOriginal</label>
+                <input value="2022:11:16 14:24:38">
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">辐射计算参数 <span>Float32 Celsius</span></div>
+            <div class="form-grid">
+              <div class="field">
+                <label>Emissivity</label>
+                <input value="0.95">
+              </div>
+              <div class="field">
+                <label>ObjectDistance m</label>
+                <input value="100.0">
+              </div>
+              <div class="field">
+                <label>ReflectedApparentTemperature °C</label>
+                <input value="20.0">
+              </div>
+              <div class="field">
+                <label>AtmosphericTemperature °C</label>
+                <input value="20.0">
+              </div>
+              <div class="field">
+                <label>RelativeHumidity %</label>
+                <input value="50">
+              </div>
+              <div class="field">
+                <label>IRWindowTransmission</label>
+                <input value="1.0">
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Planck 参数 <span class="locked">只读</span></div>
+            <div class="form-grid">
+              <div class="field">
+                <label>PlanckR1</label>
+                <input value="21106.77" readonly>
+              </div>
+              <div class="field">
+                <label>PlanckR2</label>
+                <input value="0.012545" readonly>
+              </div>
+              <div class="field">
+                <label>PlanckB</label>
+                <input value="1501.0" readonly>
+              </div>
+              <div class="field">
+                <label>PlanckF</label>
+                <input value="1.0" readonly>
+              </div>
+              <div class="field wide">
+                <label>PlanckO</label>
+                <input value="-7340" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="right-actions">
+          <button>恢复原始值</button>
+          <button>应用到全部图像</button>
+          <button class="primary">验证参数</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <section class="output-panel">
+        <h3>输出设置</h3>
+        <div class="output-grid">
+          <label class="check-tile"><input type="checkbox" checked><span><strong>Raw UInt16 TIFF</strong><span>拼图 / 归档主输出</span></span></label>
+          <label class="check-tile"><input type="checkbox" checked><span><strong>Float32 Celsius TIFF</strong><span>温度分析主输出</span></span></label>
+          <label class="check-tile"><input type="checkbox" checked><span><strong>8-bit Preview</strong><span>质检与兼容兜底</span></span></label>
+          <label class="check-tile"><input type="checkbox" checked><span><strong>RGB Preview</strong><span>可见光备用质检</span></span></label>
+          <label class="check-tile"><input type="checkbox" checked><span><strong>Metadata JSON</strong><span>完整 FLIR / EXIF 参数</span></span></label>
+          <label class="check-tile"><input type="checkbox" checked><span><strong>Camera CSV</strong><span>拼图软件相机位置</span></span></label>
+        </div>
+        <div class="progress-row">
+          <div class="progress"><div id="progressBar"></div></div>
+          <strong id="progressText">0%</strong>
+        </div>
+      </section>
+
+      <section class="log-panel">
+        <h3>日志与错误列表</h3>
+        <ul class="log-list" id="logList">
+          <li class="info">[14:24:38] ExifTool ready: tools/exiftool/exiftool.exe</li>
+          <li class="ok">[14:24:39] 检测到 2 个 FLIR Duo Pro R R-JPG 文件</li>
+          <li class="ok">[14:24:39] RawThermalImage、Planck 参数、GPS 字段完整</li>
+          <li class="warn">[14:24:40] Float32 温度输出将使用 R-JPG 内嵌辐射参数</li>
+        </ul>
+      </section>
+    </footer>
+  </div>
+
+  <script>
+    const files = [
+      {
+        name: "20221116_142438_290_R.JPG",
+        lat: "34.151443",
+        lon: "108.928383",
+        alt: "622.09",
+        min: "18.42 °C",
+        max: "42.86 °C",
+        avg: "29.17 °C",
+        pixel: "31.64 °C"
+      },
+      {
+        name: "20221116_142439_291_R.JPG",
+        lat: "34.151466",
+        lon: "108.928412",
+        alt: "622.34",
+        min: "18.36 °C",
+        max: "43.10 °C",
+        avg: "29.31 °C",
+        pixel: "31.82 °C"
+      }
+    ];
+
+    let activeIndex = 0;
+    const fileList = document.getElementById("fileList");
+    const activeFileHint = document.getElementById("activeFileHint");
+    const minTemp = document.getElementById("minTemp");
+    const maxTemp = document.getElementById("maxTemp");
+    const avgTemp = document.getElementById("avgTemp");
+    const pixelTemp = document.getElementById("pixelTemp");
+    const latInput = document.getElementById("latInput");
+    const lonInput = document.getElementById("lonInput");
+    const mockImage = document.getElementById("mockImage");
+    const logList = document.getElementById("logList");
+    const progressBar = document.getElementById("progressBar");
+    const progressText = document.getElementById("progressText");
+
+    function renderFiles() {
+      fileList.innerHTML = "";
+      files.forEach((file, index) => {
+        const item = document.createElement("div");
+        item.className = "file-item" + (index === activeIndex ? " selected" : "");
+        item.innerHTML = `
+          <div class="file-name">${file.name}</div>
+          <span class="badge ok">通过</span>
+          <div class="file-meta">
+            <span>640 x 512</span>
+            <span>GPS 完整</span>
+            <span>Planck 完整</span>
+          </div>
+        `;
+        item.addEventListener("click", () => {
+          activeIndex = index;
+          updateActiveFile();
+          renderFiles();
+        });
+        fileList.appendChild(item);
+      });
+    }
+
+    function updateActiveFile() {
+      const file = files[activeIndex];
+      activeFileHint.textContent = file.name;
+      minTemp.textContent = file.min;
+      maxTemp.textContent = file.max;
+      avgTemp.textContent = file.avg;
+      pixelTemp.textContent = file.pixel;
+      latInput.value = file.lat;
+      lonInput.value = file.lon;
+    }
+
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        const mode = tab.dataset.tab;
+        mockImage.className = mode === "rgb" ? "rgb-image" : "thermal-image";
+        if (mode === "verify") {
+          addLog("info", "像素验证面板已激活：x=346, y=221, calculated=31.64 °C");
+        }
+      });
+    });
+
+    document.getElementById("checkBtn").addEventListener("click", () => {
+      addLog("ok", "重新检查完成：2 个 R-JPG 文件通过，一致性检查通过");
+      setProgress(18);
+    });
+
+    document.getElementById("reportBtn").addEventListener("click", () => {
+      addLog("info", "检查报告已生成：metadata/processing_report.txt");
+    });
+
+    document.getElementById("processBtn").addEventListener("click", () => {
+      const steps = [
+        [30, "提取 RawThermalImage：20221116_142438_290_R.JPG"],
+        [48, "写入 thermal_raw_uint16_tiff/20221116_142438_290_R.tif"],
+        [66, "计算 Float32 Celsius：Planck + 辐射修正"],
+        [82, "复制 EXIF/GPS 并生成 camera_positions.csv"],
+        [100, "批处理完成：2 个文件，0 个错误"]
+      ];
+      let i = 0;
+      const timer = setInterval(() => {
+        const step = steps[i];
+        setProgress(step[0]);
+        addLog(step[0] === 100 ? "ok" : "info", step[1]);
+        i += 1;
+        if (i >= steps.length) clearInterval(timer);
+      }, 450);
+    });
+
+    function setProgress(value) {
+      progressBar.style.width = value + "%";
+      progressText.textContent = value + "%";
+    }
+
+    function addLog(type, text) {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      const ss = String(now.getSeconds()).padStart(2, "0");
+      const li = document.createElement("li");
+      li.className = type;
+      li.textContent = `[${hh}:${mm}:${ss}] ${text}`;
+      logList.prepend(li);
+    }
+
+    renderFiles();
+    updateActiveFile();
+  </script>
+</body>
+</html>
